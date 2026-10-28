@@ -18,4 +18,9 @@ public class AuthController {
     public ResponseEntity<UsuarioResponse> registrar(@Valid @RequestBody RegistroRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.registrar(req));
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
+        return ResponseEntity.ok(authService.login(req));
+    }
 }

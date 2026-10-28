@@ -1,4 +1,4 @@
-package main.java.edu.eci.dosw.oficioya.security;
+package edu.eci.dosw.oficioya.security;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
