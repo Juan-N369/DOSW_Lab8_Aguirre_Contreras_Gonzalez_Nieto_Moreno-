@@ -26,6 +26,7 @@ class SolicitudControllerTest {
     private static final String ANA = "ana@example.com";
     private static final String LUIS = "luis@example.com";
     private static final String PEDRO = "pedro@example.com";
+    private static final String MARIA = "maria@example.com";
 
     @Autowired
     MockMvc mockMvc;
@@ -47,6 +48,7 @@ class SolicitudControllerTest {
         Usuario ana = crearUsuario("Ana", ANA, Rol.CONTRATANTE);
         Usuario luis = crearUsuario("Luis", LUIS, Rol.CONTRATANTE);
         Usuario pedro = crearUsuario("Pedro", PEDRO, Rol.TRABAJADOR);
+        crearUsuario("María", MARIA, Rol.TRABAJADOR);   // trabajadora sin solicitudes asignadas
 
         solicitudDeAna = crearSolicitud(ana, pedro, "Gotera en el baño");
         crearSolicitud(ana, pedro, "Cambiar la llave del lavamanos");
@@ -99,6 +101,39 @@ class SolicitudControllerTest {
         // la propia sí la ve
         mockMvc.perform(get("/api/v1/solicitudes/" + solicitudDeLuis))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = MARIA, roles = "TRABAJADOR")
+    @DisplayName("PT-16: aceptar con un trabajador no asignado responde 404 y no cambia la base de datos")
+    void aceptarTrabajadorNoAsignado() throws Exception {
+        mockMvc.perform(patch("/api/v1/solicitudes/" + solicitudDeAna + "/aceptar"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.mensaje").value("Solicitud no encontrada"));
+
+        assertEquals(EstadoSolicitud.PENDIENTE,
+                solicitudRepository.findById(solicitudDeAna).orElseThrow().getEstado());
+    }
+
+    @Test
+    @WithMockUser(username = ANA, roles = "CONTRATANTE")
+    @DisplayName("PT-16: un CONTRATANTE que intenta aceptar recibe 403")
+    void aceptarComoContratante() throws Exception {
+        mockMvc.perform(patch("/api/v1/solicitudes/" + solicitudDeAna + "/aceptar"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403));
+
+        assertEquals(EstadoSolicitud.PENDIENTE,
+                solicitudRepository.findById(solicitudDeAna).orElseThrow().getEstado());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@example.com", roles = "ADMIN")
+    @DisplayName("PT-17: el ADMIN que consulta /solicitudes recibe 403")
+    void adminNoAccedeSolicitudes() throws Exception {
+        mockMvc.perform(get("/api/v1/solicitudes"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403));
     }
 
     private Usuario crearUsuario(String nombre, String correo, Rol rol) {
