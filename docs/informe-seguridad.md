@@ -12,13 +12,21 @@ La contraseña se hashea y no se cifra porque el hash es de una sola vía: si se
 
 El payload decodificado en jwt.io contiene `sub` (correo), `role`, `iss` (oficioya), `iat` y `exp` (30 minutos). No lleva contraseña, teléfono ni datos sensibles, porque cualquiera puede leerlo.
 
-Al cambiar `role` a `ADMIN` y reenviar el token, la API respondió **401** [PENDIENTE: confirmar con el ataque 2 y adjuntar evidencia]. El servidor lo detectó porque la firma HS256 se calcula sobre header y payload con la clave secreta (`JWT_SECRET`). Al modificar el payload, la firma original ya no coincide, y sin la clave el atacante no puede generar una válida. `JwtService.validar` lanza una `JwtException` y el filtro deja la petición sin autenticar, de modo que el punto de entrada responde 401. La prueba PT-08 cubre este caso.
+Al cambiar `role` a `ADMIN` y reenviar el token, la API respondió **401** 
+
+<img width="953" height="1024" alt="Captura de pantalla 2026-10-29 225344" src="https://github.com/user-attachments/assets/964aaaf1-0f8f-4dbb-ae71-2be693d13e4f" />
+
+. El servidor lo detectó porque la firma HS256 se calcula sobre header y payload con la clave secreta (`JWT_SECRET`). Al modificar el payload, la firma original ya no coincide, y sin la clave el atacante no puede generar una válida. `JwtService.validar` lanza una `JwtException` y el filtro deja la petición sin autenticar, de modo que el punto de entrada responde 401. La prueba PT-08 cubre este caso.
 
 ## 3. Ejemplos de 401, 403 y 404
 
 - **401:** `GET /api/v1/solicitudes` sin token. No sabemos quién es el usuario (PT-07).
-- **403:** un contratante llama a `GET /api/v1/admin/usuarios`. Sabemos quién es, pero su rol no alcanza [PENDIENTE: evidencia ataque 5].
-- **404:** con el token de Luis se pide una solicitud de Ana [PENDIENTE: evidencia ataque 4; prueba PT-15].
+- **403:** un contratante llama a `GET /api/v1/admin/usuarios`. Sabemos quién es, pero su rol no alcanza
+- <img width="956" height="1030" alt="Captura de pantalla 2026-10-29 225453" src="https://github.com/user-attachments/assets/f5acda87-5fba-4019-a43c-3a9b07fb3110" />
+
+- **404:** con el token de Luis se pide una solicitud de Ana
+- <img width="954" height="1020" alt="ataque3" src="https://github.com/user-attachments/assets/4b2a59b4-ed87-4a00-ac64-36079a8e67c2" />
+
 
 Una solicitud ajena responde 404 y no 403 porque un 403 confirmaría que esa solicitud existe y revelaría información a quien no debería tenerla. Con 404, una solicitud ajena y una inexistente son indistinguibles, ya que la consulta incluye al participante autenticado.
 
