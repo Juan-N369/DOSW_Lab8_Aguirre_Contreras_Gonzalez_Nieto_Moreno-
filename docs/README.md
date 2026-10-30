@@ -1,6 +1,6 @@
-# Evidencias de los ataques manuales · Bloque 8
+# Evidencias · Sección 10 y ataques manuales del bloque 8
 
-Capturas tomadas con Postman y [jwt.io](https://jwt.io) contra la aplicación corriendo con el perfil `dev` y conectada a PostgreSQL en Docker. Los comandos `curl` y las respuestas completas de los siete ataques están en [`ataques.md`](ataques.md).
+Capturas tomadas con Postman y [jwt.io](https://jwt.io) contra la aplicación corriendo con el perfil `dev` y conectada a PostgreSQL en Docker. Los comandos `curl` y las respuestas completas de los siete ataques están en [`ataques/ataques.md`](ataques/ataques.md).
 
 Usuarios de prueba: **Ana** (contratante A, dueña de la solicitud 7), **Luis** (contratante B) y **Pedro** (trabajador).
 
@@ -11,6 +11,26 @@ Usuarios de prueba: **Ana** (contratante A, dueña de la solicitud 7), **Luis** 
 | [Token alterado](#ataque-2--token-con-role-cambiado-a-admin--401) | 2 | `401` | `401` ✅ |
 | [Solicitud ajena](#ataque-4--luis-pide-la-solicitud-de-ana--404) | 4 | `404` | `404` ✅ |
 | [Rol insuficiente](#ataque-5--contratante-llama-a-adminusuarios--403) | 5 | `403` | `403` ✅ |
+| [Contraseñas con hash](#columna-password_hash-en-postgresql) | — | Hash BCrypt, no texto plano | ✅ |
+| [Pruebas automatizadas](#resultado-de-mvn-clean-verify) | — | `BUILD SUCCESS` | 17 pruebas, 0 fallos ✅ |
+
+## Columna `password_hash` en PostgreSQL
+
+![Tabla usuarios con la columna password_hash](<evidencias/tabla hash.png>)
+
+Consulta a la tabla `usuarios` del contenedor de Docker:
+
+```powershell
+docker exec postgres-oficioya psql -U postgres -d oficioya_security -c "select id, correo, rol, password_hash from usuarios"
+```
+
+Todas las contraseñas están guardadas como hash BCrypt (prefijo `$2a$10$`: algoritmo 2a con costo 10), nunca en texto plano. Ana, Luis y Pedro tienen la misma contraseña y sus hashes son distintos, porque BCrypt agrega una sal aleatoria a cada uno.
+
+## Resultado de `mvn clean verify`
+
+![Resultado de mvn clean verify](<Evidencias/mvn clean verify.png>)
+
+Las 17 pruebas automatizadas pasan (`Tests run: 17, Failures: 0, Errors: 0, Skipped: 0`) y el build termina en `BUILD SUCCESS`. Las pruebas usan H2 en memoria con el perfil `test`, así que no necesitan PostgreSQL.
 
 ## Payload del token en jwt.io
 
@@ -44,4 +64,4 @@ A la izquierda, en jwt.io, se cambió el `role` del payload de Luis a `ADMIN` y 
 
 ## Ataques sin captura
 
-Los ataques 3 (token vencido, `401`), 6 (registro con `"rol": "ADMIN"`, `400`) y 7 (login con correo inexistente y con clave errónea, mismo `401` y mismo mensaje) están documentados con sus comandos y respuestas en [`ataques.md`](ataques.md).
+Los ataques 3 (token vencido, `401`), 6 (registro con `"rol": "ADMIN"`, `400`) y 7 (login con correo inexistente y con clave errónea, mismo `401` y mismo mensaje) están documentados con sus comandos y respuestas en [`ataques/ataques.md`](ataques/ataques.md).
