@@ -39,4 +39,10 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 ApiError.of(401, "Unauthorized", "Credenciales inválidas", req.getRequestURI()));
     }
+
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    ResponseEntity<ApiError> noEncontrado(RecursoNoEncontradoException ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                ApiError.of(404, "Not Found", ex.getMessage(), req.getRequestURI()));
+    }
 }
