@@ -13,3 +13,9 @@
 | Resultado de `mvn clean verify` | [`mvn clean verify.png`](<docs/Evidencias/mvn clean verify.png>) |
 
 La descripción de cada captura está en [`docs/README.md`](docs/README.md).
+
+## Front-End
+
+El front de OficioYa (React + Vite) está en su propio repositorio: https://github.com/camilo-axm/DOSW_Lab9_Aguirre_Contreras_Gonzalez_Nieto_Moreno-.git
+
+Para usarlo, este back debe estar corriendo en `http://localhost:8080` con el perfil `dev`.
